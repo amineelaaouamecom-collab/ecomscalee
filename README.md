@@ -20,6 +20,7 @@ Set these browser-safe values in `.env`:
 
 - `VITE_SUPABASE_URL`
 - `VITE_SUPABASE_ANON_KEY` — a Supabase publishable key or legacy anon key, never a secret/service-role key
+- `VITE_WHATSAPP_WORKER_URL` — public HTTPS URL of the VPS worker; localhost defaults to port 5000
 - `VITE_YOUCAN_REDIRECT_URI` — optional, when YouCan OAuth is enabled
 
 The app renders a visible configuration error if the required Supabase browser values are missing or invalid.

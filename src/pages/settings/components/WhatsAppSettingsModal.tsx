@@ -8,6 +8,7 @@ import QRCode from "react-qr-code";
 import { toast } from "../../../components/Toast";
 import { useAuth } from "../../../hooks/useAuth";
 import { supabase } from "../../../lib/supabase";
+import { callWhatsAppWorker } from "../../../services/whatsappWorkerService";
 
 const TABS = [
   ["connection", "Connection", Smartphone],
@@ -97,14 +98,6 @@ const DEFAULT_ACTIONS: Record<ReplyAction["action"], ReplyAction> = {
   opt_out: { action: "opt_out", enabled: true, keywords: ["stop", "توقف", "حبس", "désabonner"], response_template: "تم إيقاف رسائل واتساب لهاد الرقم. شكراً." },
 };
 
-function whatsappControlError(error: any): Error {
-  const message = String(error?.message || error || "Could not reach the WhatsApp control service");
-  if (/failed to send a request to the edge function/i.test(message)) {
-    return new Error("WhatsApp control service is not deployed or its CORS origin is not configured");
-  }
-  return new Error(message);
-}
-
 const VARIABLES = ["customer_name", "order_number", "products", "total", "city", "phone", "address", "shipping_company", "tracking_number", "workspace_name", "status", "current_date", "current_time"];
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -162,11 +155,13 @@ export default function WhatsAppSettingsModal({ isOpen, onClose, initialSettings
 
   const invokeWorker = useCallback(async (action: "connect" | "disconnect" | "status" | "test", extra: Record<string, unknown> = {}) => {
     if (!workspace?.id) throw new Error("Workspace not found");
-    const { data, error } = await supabase.functions.invoke("whatsapp-control", { body: { action, workspace_id: workspace.id, ...extra } });
-    if (error) throw whatsappControlError(error);
-    if (data?.error) throw new Error(data.error);
-    return data;
-  }, [workspace?.id]);
+    return callWhatsAppWorker({
+      action,
+      workspaceId: workspace.id,
+      accessToken: session?.access_token || "",
+      payload: extra,
+    });
+  }, [session?.access_token, workspace?.id]);
 
   const loadData = useCallback(async () => {
     if (!workspace?.id) return;

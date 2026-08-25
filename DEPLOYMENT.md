@@ -8,6 +8,7 @@ Configure for Preview and Production:
 | --- | --- | --- | --- |
 | `VITE_SUPABASE_URL` | Yes | No | Supabase project URL |
 | `VITE_SUPABASE_ANON_KEY` | Yes | No | Publishable key or legacy anon key protected by RLS |
+| `VITE_WHATSAPP_WORKER_URL` | Yes for WhatsApp | No | Public HTTPS URL of the VPS `whatsapp-web.js` worker |
 | `VITE_YOUCAN_REDIRECT_URI` | Only for YouCan OAuth | No | Browser callback URL, for example `https://ecomscale.vercel.app/api/youcan/callback` |
 
 Never configure a service-role key, `sb_secret_...`, OAuth client secret, worker API secret, or private VAPID key with a `VITE_` prefix.
@@ -48,13 +49,14 @@ Required VPS-only variables:
 | --- | --- |
 | `SUPABASE_URL` | Backend project URL |
 | `SUPABASE_SERVICE_ROLE_KEY` | Privileged worker database access; never expose to browsers |
-| `WORKER_API_SECRET` | Authenticates control requests between Edge Functions and the worker |
+| `WORKER_API_SECRET` | Optional legacy server-to-server credential; browser control uses the user's access token |
+| `WORKER_ALLOWED_ORIGINS` | Comma-separated frontend origins allowed to call the worker directly |
 | `WORKER_PORT` | HTTP port, defaults to `5000` |
 | `SESSION_STORAGE_PATH` | Persistent WhatsApp session directory |
 | `WORKER_ID` | Stable worker identifier |
 | `QUEUE_POLL_MS` | Optional queue polling interval |
 
-Persist the session directory, run the worker under a process supervisor, place TLS/reverse-proxy protection in front of it, and allow only trusted control traffic. See `whatsapp-worker/README.md` for commands and endpoints.
+Persist the session directory, run the worker under a process supervisor, place TLS/reverse-proxy protection in front of it, and allow only trusted frontend origins. See `whatsapp-worker/README.md` for commands and endpoints.
 
 ## 4. Supabase Auth URLs
 

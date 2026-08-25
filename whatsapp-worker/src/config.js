@@ -27,16 +27,26 @@ function required(names) {
 }
 
 const configuredApiSecret = first("WORKER_API_SECRET");
-if (!configuredApiSecret && localDevelopment) {
-  console.warn("[worker] WORKER_API_SECRET is not set; using the legacy local development secret");
-}
+const defaultOrigins = [
+  "http://localhost:8080",
+  "http://127.0.0.1:8080",
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "https://ecomscale.vercel.app",
+];
 
 export const config = Object.freeze({
   supabaseUrl: required(["SUPABASE_URL", "VITE_SUPABASE_URL"]),
   serviceRoleKey: required("SUPABASE_SERVICE_ROLE_KEY"),
-  apiSecret: configuredApiSecret || (localDevelopment ? "dev-secret" : required("WORKER_API_SECRET")),
-  host: first("WORKER_HOST") || (!configuredApiSecret && localDevelopment ? "127.0.0.1" : "0.0.0.0"),
+  // Optional legacy server-to-server credential. Browser control requests use
+  // the signed-in user's Supabase access token instead.
+  apiSecret: configuredApiSecret,
+  host: first("WORKER_HOST") || (localDevelopment ? "127.0.0.1" : "0.0.0.0"),
   port: Number(process.env.WORKER_PORT || 5000),
+  allowedOrigins: (first("WORKER_ALLOWED_ORIGINS") || defaultOrigins.join(","))
+    .split(",")
+    .map((origin) => origin.trim().replace(/\/$/, ""))
+    .filter(Boolean),
   sessionPath: process.env.SESSION_STORAGE_PATH || "./sessions",
   workerId: process.env.WORKER_ID || `worker-${process.pid}`,
   version: "2.0.0",

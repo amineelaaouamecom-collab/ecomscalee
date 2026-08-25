@@ -5,9 +5,10 @@ import { supabase } from "../../../lib/supabase";
 import { useAuth } from "../../../hooks/useAuth";
 import WhatsAppSettingsModal from "./WhatsAppSettingsModal";
 import { toast } from "../../../components/Toast";
+import { callWhatsAppWorker } from "../../../services/whatsappWorkerService";
 
 export default function WhatsAppIntegrationCard() {
-    const { workspace } = useAuth();
+    const { workspace, session } = useAuth();
     const [loading, setLoading] = useState(true);
     const [settings, setSettings] = useState<any>(null);
     const [isManageOpen, setIsManageOpen] = useState(false);
@@ -54,11 +55,12 @@ export default function WhatsAppIntegrationCard() {
     const handleDisconnect = async () => {
         if (!workspace?.id || !confirm("Disconnect WhatsApp? Session will be terminated.")) return;
         try {
-            const { data, error: functionError } = await supabase.functions.invoke("whatsapp-control", {
-                body: { action: "disconnect", workspace_id: workspace.id, revoke_session: true },
+            await callWhatsAppWorker({
+                action: "disconnect",
+                workspaceId: workspace.id,
+                accessToken: session?.access_token || "",
+                payload: { revoke_session: true },
             });
-            if (functionError) throw functionError;
-            if (data?.error) throw new Error(data.error);
             const { error } = await supabase
                 .from("whatsapp_settings")
                 .update({ enabled: false, connection_status: "disconnected", connected_phone: null })

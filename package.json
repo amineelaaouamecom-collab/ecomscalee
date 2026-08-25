@@ -13,9 +13,10 @@
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b --pretty false",
     "test": "npm run test:run",
-    "test:run": "npm run test:notifications && npm run test:tiktok",
+    "test:run": "npm run test:notifications && npm run test:tiktok && npm run test:whatsapp",
     "test:notifications": "node --experimental-strip-types --test tests/notification-*.test.ts",
     "test:tiktok": "node --experimental-strip-types --test tests/tiktok-*.test.ts",
+    "test:whatsapp": "node --experimental-strip-types --test tests/whatsapp-*.test.ts",
     "preview": "vite preview",
     "verify": "npm run test:run && npm run build"
   },
